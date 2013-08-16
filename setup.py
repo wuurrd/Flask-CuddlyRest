@@ -7,7 +7,7 @@ read_requirements = lambda filename: read_file(filename).splitlines()
 
 setup(
     name='Flask-CuddlyRest',
-    version='0.1.1',
+    version='0.1.2',
     url='http://github.com/wuurrd/flask-cuddlyrest',
     license='MIT',
     author='David Buchmann',

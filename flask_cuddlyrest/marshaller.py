@@ -48,6 +48,8 @@ class Marshaller(object):
             return value.isoformat()
         if isinstance(value, ObjectId):
             return str(value)
+        if isinstance(value, list):
+            return [self.convertor(k) for k in value]
         if isinstance(value, dict):
             return dict((k, self.convertor(v, parent=value, parent_key=k))
                         for k, v in value.iteritems())
@@ -83,17 +85,22 @@ class Marshaller(object):
             elif isinstance(value, list):
                 #Fallback for listfield
                 setattr(self.doc, field, [])
+                related_field = getattr(self.document_cls, field)
+                try:
+                    embedded_doc = related_field.field
+                except:
+                    embedded_doc = None
                 for child in value:
-                    if isinstance(child, dict):
-                        related_field = getattr(self.document_cls, field)
-                        embedded_doc = related_field.field
-                        if isinstance(embedded_doc, EmbeddedDocumentField):
-                            d = embedded_doc.document_type_obj()
-                            self.__class__(d).loads(child)
-                            getattr(self.doc, field).append(d)
-                        else:
-                            getattr(self.doc, field).append(child)
+                    if isinstance(embedded_doc, EmbeddedDocumentField):
+                        d = embedded_doc.document_type_obj()
+                        self.__class__(d).loads(child)
+                        getattr(self.doc, field).append(d)
+                    elif isinstance(embedded_doc, ReferenceField):
+                        reference_doc = embedded_doc.document_type_obj
+                        d = reference_doc.objects.get(pk=value)
+                        getattr(self.doc, field).append(d)
                     else:
                         getattr(self.doc, field).append(child)
             else:
                 setattr(self.doc, field, value)
+        return self.doc
