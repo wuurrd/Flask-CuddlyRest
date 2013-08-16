@@ -1,6 +1,6 @@
 Flask-CuddlyRest
 ===============
-A framework for manipulating mongoengine collections via a CUD-ly API (CRUD without the R).
+A framework for manipulating mongoengine collections via a CUD-ly API
 
 It has taken inspiration from:
  - https://github.com/brettlangdon/mongorest
