@@ -1,9 +1,6 @@
 '''
 This code is inspired by:
 https://github.com/brettlangdon/mongorest
-
-After using flask-mongorest, and realising that there is a hefty hatred for
-it.
 '''
 from flask.ext.restful import Resource
 from flask.ext.cuddlyrest.marshaller import Marshaller
