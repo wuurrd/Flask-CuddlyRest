@@ -97,7 +97,7 @@ class Marshaller(object):
                         getattr(self.doc, field).append(d)
                     elif isinstance(embedded_doc, ReferenceField):
                         reference_doc = embedded_doc.document_type_obj
-                        d = reference_doc.objects.get(pk=value)
+                        d = reference_doc.objects.get(pk=child)
                         getattr(self.doc, field).append(d)
                     else:
                         getattr(self.doc, field).append(child)
