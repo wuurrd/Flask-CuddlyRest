@@ -50,12 +50,13 @@ class MongoResource(Resource):
         Any request arguments given will be passed directly to the mongorest
         filter, except for limit and order_by
 
+        For None fields just use fieldname=  (with no value)
         This allows us to query embedded documents via e.g.:
         embeddedname__embeddedfieldname
 
         See the :mongoengine.queryset documentation for more complex examples.
         '''
-        args = dict([(k, v[0]) for k, v in request.args.viewitems()])
+        args = dict([(k, v[0] or None) for k, v in request.args.viewitems()])
         limit = args.pop('limit', None)
         if limit:
             limit = int(limit)
