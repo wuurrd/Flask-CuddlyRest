@@ -5,7 +5,10 @@ A framework for manipulating mongoengine collections via a CUD-ly API
 It has taken inspiration from:
  - https://github.com/brettlangdon/mongorest
  - https://github.com/elasticsales/flask-mongorest
+
 All credit goes to those projects! :)
+
+[![Build Status](https://travis-ci.org/wuurrd/Flask-CuddlyRest.png)](https://travis-ci.org/wuurrd/Flask-CuddlyRest)
 
 Setup
 =====
