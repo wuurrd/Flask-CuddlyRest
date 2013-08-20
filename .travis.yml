@@ -1,0 +1,14 @@
+---
+language: python
+python:
+  - "2.7"
+  - "3.2"
+  - "3.3"
+install: "pip install --use-mirrors --editable ."
+script:
+ - find . -name '*.py' -exec python -m py_compile {} \;
+ # Test source distribution installs okay
+ - rm -rf dist
+ - python setup.py sdist
+ - virtualenv install_test
+ - ./install_test/bin/pip install --use-mirrors dist/*.tar.gz
