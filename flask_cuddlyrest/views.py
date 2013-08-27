@@ -6,7 +6,7 @@ from flask.ext.restful import Resource
 from flask.ext.cuddlyrest.marshaller import Marshaller
 from flask import request, current_app
 from mongoengine.queryset import DoesNotExist
-from mongoengine.errors import ValidationError
+from mongoengine.errors import ValidationError, InvalidQueryError
 import traceback
 import functools
 
@@ -16,13 +16,19 @@ def catch_all(function):
     def subst(*args, **kwargs):
         try:
             return function(*args, **kwargs)
-        except DoesNotExist, e:
+        except DoesNotExist as e:
             return 'Not Found', 404
-        except ValidationError, e:
-            return {"field-errors":
-                    dict([(k, str(v)) for k, v in e.errors.items()])}, 400
+        except InvalidQueryError as e:
+            return {"error": unicode(e.message)}, 400
+        except ValidationError as e:
+            errors = {}
+            if e.field_name:
+                errors[e.field_name] = e.message
+            if e.errors:
+                errors.update(e.errors)
+            return {"field-errors": errors}, 400
         except Exception, e:
-            return {"field-errors": traceback.format_exc(e)}, 400
+            return {"error": traceback.format_exc(e)}, 500
     return subst
 
 
