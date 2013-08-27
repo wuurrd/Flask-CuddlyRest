@@ -33,7 +33,9 @@ def catch_all(function):
 
 
 class MongoResource(Resource):
+
     def __init__(self, document):
+        super(MongoResource, self).__init__()
         self.document = document
 
     def mediatypes(self):
