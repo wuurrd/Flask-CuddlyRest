@@ -23,9 +23,9 @@ def catch_all(function):
         except ValidationError as e:
             errors = {}
             if e.field_name:
-                errors[e.field_name] = e.message
+                errors[e.field_name] = unicode(e.message)
             if e.errors:
-                errors.update(e.errors)
+                errors.update({k: unicode(v) for k, v in e.errors.items()})
             return {"field-errors": errors}, 400
         except Exception, e:
             return {"error": traceback.format_exc(e)}, 500
