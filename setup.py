@@ -5,6 +5,8 @@ here = os.path.abspath(os.path.dirname(__file__))
 read_file = lambda filename: open(os.path.join(here, filename)).read()
 read_requirements = lambda filename: read_file(filename).splitlines()
 
+TEST_REQUIREMENTS = read_requirements('requirements-test.txt')
+
 setup(
     name='Flask-CuddlyRest',
     version='0.1.5',
@@ -21,6 +23,10 @@ setup(
     ],
     zip_safe=False,
     install_requires=read_requirements('requirements.txt'),
+    tests_require=TEST_REQUIREMENTS,
+    extras_require={
+        'test': TEST_REQUIREMENTS,
+    },
     classifiers=[
         'Environment :: Web Environment',
         'Intended Audience :: Developers',

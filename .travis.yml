@@ -4,10 +4,13 @@ python:
   - "2.7"
 #  - "3.2"
 #  - "3.3"
-install: "pip install --use-mirrors --editable ."
+install: "pip install --use-mirrors --editable .[test]"
 script:
+ # Test that everything compiles
  - find . -name '*.py' -exec python -m py_compile {} \;
- # Test source distribution installs okay
+ # Run unit tests and collect coverage info
+ - nose2
+ # Build the package and check it installs correctly
  - rm -rf dist
  - python setup.py sdist
  - virtualenv install_test
