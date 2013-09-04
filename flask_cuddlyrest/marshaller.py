@@ -96,7 +96,7 @@ class Marshaller(object):
                         self.__class__(d).loads(child)
                         getattr(self.doc, field).append(d)
                     elif isinstance(embedded_doc, ReferenceField):
-                        reference_doc = embedded_doc.document_type_obj
+                        reference_doc = embedded_doc.document_type
                         d = reference_doc.objects.get(pk=child)
                         getattr(self.doc, field).append(d)
                     else:
