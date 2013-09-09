@@ -35,7 +35,7 @@
 
          - Url parameters:
 
-            - *id*: The MongoDB ObjectID that uniquely identifies
+            - *id*: The MongoDB ObjectID that uniquely identifies the record.
 
      Result:
 
@@ -62,7 +62,9 @@
 
    * **PUT {{ url }}/<id>**
 
-     **TODO** Change the method to PATCH instead.
+     .. note::
+         TODO: Change the method to PATCH instead.
+     ..
 
      Do a partial update on the designated record.
 

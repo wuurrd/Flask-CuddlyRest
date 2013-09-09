@@ -81,6 +81,7 @@ class ServiceDirective(Directive):
 
         return [rst2node(template.render(self.options))]
 
+
 class ObjectDirective(Directive):
     """ Object directive.
 
