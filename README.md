@@ -5,6 +5,7 @@ A framework for manipulating mongoengine collections via a CUD-ly API
 It has taken inspiration from:
  - https://github.com/brettlangdon/mongorest
  - https://github.com/elasticsales/flask-mongorest
+ - https://github.com/mozilla-services/cornice (for sphinx integration)
 
 All credit goes to those projects! :)
 
