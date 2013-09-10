@@ -9,7 +9,7 @@ TEST_REQUIREMENTS = read_requirements('requirements-test.txt')
 
 setup(
     name='Flask-CuddlyRest',
-    version='0.1.5',
+    version='0.1.6',
     url='http://github.com/wuurrd/flask-cuddlyrest',
     license='MIT',
     author='David Buchmann',
