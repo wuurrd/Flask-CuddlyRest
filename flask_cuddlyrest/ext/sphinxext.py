@@ -57,15 +57,10 @@ class ServiceDirective(Directive):
             :document: Sock # The name of the class where the mongo document
                        binding is defined.
             :url: /socks # the url on which the document object is served.
-            :id: sock_class # the named hyperlink reference id which the
-            rest of the API doc can use to reference this generated
-            documentation block. This is optional: when not provided, the
-            default value will be set to the document name, lower cased.
     """
     has_content = True
     option_spec = {'document': directives.unchanged_required,
-                   'url': directives.uri,
-                   'id': directives.unchanged}
+                   'url': directives.uri}
     domain = 'cuddlyrest'
     doc_field_types = []
 

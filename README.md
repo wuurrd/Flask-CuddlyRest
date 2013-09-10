@@ -1,5 +1,6 @@
 Flask-CuddlyRest
-===============
+================
+
 A framework for manipulating mongoengine collections via a CUD-ly API
 
 It has taken inspiration from:
@@ -99,3 +100,50 @@ Request Params
 
 **skip** and **limit** => utilize the built-in functions of mongodb.
 **order_by** => order results if this string is present in the Resource.allowed_ordering list.
+
+Sphinx doc generation
+=====================
+
+There are facilities to generate sphinx documentation that document the REST
+APIs as handled by Flask-CuddlyREST.
+
+Setup
+-----
+
+Edit `conf.py` and add the following:
+
+```
+import flask_cuddlyrest
+```
+
+Make sure `flask_cuddlyrest.ext.sphinxext` is added to the list of extensions, for instance:
+```
+extensions = ['sphinx.ext.autodoc',
+			  'flask_cuddlyrest.ext.sphinxext']
+```
+
+Usage
+-----
+
+To add a description of the operations that Flask-CuddlyREST handles:
+
+```
+.. cuddlyrest::
+    :document: Sock # The name of the class where the mongo document
+               binding is defined.
+    :url: /socks # the url on which the document object is served.
+```
+
+To add a description of the JSON objects Flask-CuddlyREST handles:
+
+```
+.. cuddlyobject::
+    :module: the.module.in.which.the.document.is.defined
+    :document: Sock # The name of the class where the mongo document
+               binding is defined.
+    :id: sock_class # the named hyperlink reference id which the
+    rest of the API doc can use to reference this generated
+    documentation block. This is optional: when not provided, the
+    default value will be set to the document name, lower cased.
+
+```

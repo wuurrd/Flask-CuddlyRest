@@ -62,7 +62,7 @@
 
    * **PUT {{ url }}/<id>**
 
-     .. note::
+     .. warning::
          TODO: Change the method to PATCH instead.
      ..
 
