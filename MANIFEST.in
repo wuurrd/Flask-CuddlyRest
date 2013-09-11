@@ -1,2 +1,2 @@
 include README.md *.txt
-recursive-include *.rst
+include flask_cuddlyrest/ext/templates/*.rst
