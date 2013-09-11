@@ -1,5 +1,5 @@
 import os
-from setuptools import setup
+from setuptools import setup, find_packages
 
 here = os.path.abspath(os.path.dirname(__file__))
 read_file = lambda filename: open(os.path.join(here, filename)).read()
@@ -9,7 +9,7 @@ TEST_REQUIREMENTS = read_requirements('requirements-test.txt')
 
 setup(
     name='Flask-CuddlyRest',
-    version='0.1.6',
+    version='0.1.8',
     url='http://github.com/wuurrd/flask-cuddlyrest',
     license='MIT',
     author='David Buchmann',
@@ -18,9 +18,7 @@ setup(
     maintainer_email='david.buchmann@gmail.com',
     description='Flask restful API framework for MongoDB/MongoEngine',
     long_description=read_file('README.md'),
-    packages=[
-        'flask_cuddlyrest',
-    ],
+    packages=find_packages(),
     zip_safe=False,
     install_requires=read_requirements('requirements.txt'),
     tests_require=TEST_REQUIREMENTS,
