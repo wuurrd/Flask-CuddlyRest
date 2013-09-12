@@ -9,7 +9,7 @@ TEST_REQUIREMENTS = read_requirements('requirements-test.txt')
 
 setup(
     name='Flask-CuddlyRest',
-    version='0.1.9',
+    version='0.1.10',
     url='http://github.com/wuurrd/flask-cuddlyrest',
     license='MIT',
     author='David Buchmann',
@@ -19,6 +19,7 @@ setup(
     description='Flask restful API framework for MongoDB/MongoEngine',
     long_description=read_file('README.md'),
     packages=find_packages(),
+    package_data={'flask_cuddlyrest.ext': ['templates/*rst']},
     zip_safe=False,
     install_requires=read_requirements('requirements.txt'),
     tests_require=TEST_REQUIREMENTS,
