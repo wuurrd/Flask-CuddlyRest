@@ -27,7 +27,10 @@ class Marshaller(object):
     def dumps(self):
         data = self.doc.to_mongo()
         for field in self.related_fields:
-            data[field] = self.__class__(getattr(self.doc, field)).dumps()
+            if getattr(self.doc, field):
+                data[field] = self.__class__(getattr(self.doc, field)).dumps()
+            else:
+                data[field] = None
         data['id'] = data['_id']
         del data['_id']
         return self.convertor(data)
