@@ -63,12 +63,12 @@ class Marshaller(object):
         for field, value in json_data.items():
             if field in self.related_fields:
                 related_doc = getattr(self.document_cls,
-                                      field).document_type_obj
+                                      field).document_type
                 related_document_ref = related_doc.objects.get(pk=value)
                 setattr(self.doc, field, related_document_ref)
             elif field in self.embedded_fields:
                 embedded_doc = getattr(self.document_cls,
-                                       field).document_type_obj
+                                       field).document_type
                 d = embedded_doc()
                 if not isinstance(value, dict):
                     raise ValidationError(field_name=field,
@@ -81,7 +81,7 @@ class Marshaller(object):
                 for k, v in value.items():
                     if isinstance(v, dict):
                         related_field = getattr(self.document_cls, field)
-                        embedded_doc = related_field.field.document_type_obj
+                        embedded_doc = related_field.field.document_type
                         d = embedded_doc()
                         self.__class__(d).loads(v)
                         getattr(self.doc, field)[k] = d
@@ -95,7 +95,7 @@ class Marshaller(object):
                     embedded_doc = None
                 for child in value:
                     if isinstance(embedded_doc, EmbeddedDocumentField):
-                        d = embedded_doc.document_type_obj()
+                        d = embedded_doc.document_type()
                         self.__class__(d).loads(child)
                         getattr(self.doc, field).append(d)
                     elif isinstance(embedded_doc, ReferenceField):
