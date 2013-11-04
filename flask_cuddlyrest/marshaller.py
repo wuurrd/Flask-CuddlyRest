@@ -60,50 +60,54 @@ class Marshaller(object):
         return value
 
     def loads(self, json_data):
-        for field, value in json_data.items():
-            if field in self.related_fields:
-                related_doc = getattr(self.document_cls,
-                                      field).document_type
+        for field_name, value in json_data.items():
+            field = getattr(self.document_cls, field_name)
+
+            if field_name in self.related_fields:
+                related_doc = field.document_type
                 related_document_ref = related_doc.objects.get(pk=value)
-                setattr(self.doc, field, related_document_ref)
-            elif field in self.embedded_fields:
-                embedded_doc = getattr(self.document_cls,
-                                       field).document_type
-                d = embedded_doc()
-                if not isinstance(value, dict):
-                    raise ValidationError(field_name=field,
-                                          errors={field: "should be a dict"})
-                self.__class__(d).loads(value)
-                setattr(self.doc, field, d)
+                setattr(self.doc, field_name, related_document_ref)
+            elif field_name in self.embedded_fields:
+                embedded_doc = field.document_type
+
+                if value is None and not field.required:
+                    d = None
+                elif isinstance(value, dict):
+                    d = embedded_doc()
+                    self.__class__(d).loads(value)
+                else:
+                    raise ValidationError(
+                        field_name=field_name,
+                        errors={field_name: "should be a dict"})
+
+                setattr(self.doc, field_name, d)
             elif isinstance(value, dict):
                 #Fallback for DictField
-                setattr(self.doc, field, {})
+                setattr(self.doc, field_name, {})
                 for k, v in value.items():
                     if isinstance(v, dict):
-                        related_field = getattr(self.document_cls, field)
-                        embedded_doc = related_field.field.document_type
+                        embedded_doc = field.field.document_type
                         d = embedded_doc()
                         self.__class__(d).loads(v)
-                        getattr(self.doc, field)[k] = d
+                        getattr(self.doc, field_name)[k] = d
             elif isinstance(value, list):
                 #Fallback for listfield
-                setattr(self.doc, field, [])
-                related_field = getattr(self.document_cls, field)
+                setattr(self.doc, field_name, [])
                 try:
-                    embedded_doc = related_field.field
+                    embedded_doc = field.field
                 except:
                     embedded_doc = None
                 for child in value:
                     if isinstance(embedded_doc, EmbeddedDocumentField):
                         d = embedded_doc.document_type()
                         self.__class__(d).loads(child)
-                        getattr(self.doc, field).append(d)
+                        getattr(self.doc, field_name).append(d)
                     elif isinstance(embedded_doc, ReferenceField):
                         reference_doc = embedded_doc.document_type
                         d = reference_doc.objects.get(pk=child)
-                        getattr(self.doc, field).append(d)
+                        getattr(self.doc, field_name).append(d)
                     else:
-                        getattr(self.doc, field).append(child)
+                        getattr(self.doc, field_name).append(child)
             else:
-                setattr(self.doc, field, value)
+                setattr(self.doc, field_name, value)
         return self.doc
