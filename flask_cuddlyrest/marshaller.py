@@ -83,13 +83,17 @@ class Marshaller(object):
                 setattr(self.doc, field_name, d)
             elif isinstance(value, dict):
                 #Fallback for DictField
-                setattr(self.doc, field_name, {})
+                dct = {}
+                setattr(self.doc, field_name, dct)
                 for k, v in value.items():
                     if isinstance(v, dict):
                         embedded_doc = field.field.document_type
                         d = embedded_doc()
                         self.__class__(d).loads(v)
-                        getattr(self.doc, field_name)[k] = d
+                        dct[k] = d
+                    else:
+                        dct[k] = v
+
             elif isinstance(value, list):
                 #Fallback for listfield
                 setattr(self.doc, field_name, [])
