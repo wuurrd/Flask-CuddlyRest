@@ -1,7 +1,8 @@
 from mongoengine.errors import ValidationError
 import unittest2
 from contextlib import contextmanager
-from mongoengine import Document, StringField, DictField
+from mongoengine import (
+    EmbeddedDocument, Document, EmbeddedDocumentField, StringField, DictField)
 
 from flask.ext.cuddlyrest.marshaller import Marshaller
 
@@ -22,17 +23,51 @@ class EmptyDoc(Document):
 class BaseFieldMarshallTest(object):
 
     missing_default = None
+    valid_optional_values = []
+    valid_required_values = []
 
     @classmethod
     def setUpClass(cls):
-        class OptionalDoc(Document):
+        class OptionalFieldDoc(Document):
             test_field = cls.field_type(required=False)
 
-        class RequiredDoc(Document):
+        class RequiredFieldDoc(Document):
             test_field = cls.field_type(required=True)
 
-        cls.OptionalDoc = OptionalDoc
-        cls.RequiredDoc = RequiredDoc
+        class EmbeddedOptionalFieldDoc(EmbeddedDocument):
+            test_field = cls.field_type(required=False)
+
+        class EmbeddedRequiredFieldDoc(EmbeddedDocument):
+            test_field = cls.field_type(required=True)
+
+        class OptionalEmbeddedOptionalFieldDoc(Document):
+            test_doc = EmbeddedDocumentField(
+                EmbeddedOptionalFieldDoc, required=False)
+
+        class OptionalEmbeddedRequiredFieldDoc(Document):
+            test_doc = EmbeddedDocumentField(
+                EmbeddedRequiredFieldDoc, required=False)
+
+        class RequiredEmbeddedOptionalFieldDoc(Document):
+            test_doc = EmbeddedDocumentField(
+                EmbeddedOptionalFieldDoc, required=True)
+
+        class RequiredEmbeddedRequiredFieldDoc(Document):
+            test_doc = EmbeddedDocumentField(
+                EmbeddedRequiredFieldDoc, required=True)
+
+        cls.OptionalFieldDoc = OptionalFieldDoc
+        cls.RequiredFieldDoc = RequiredFieldDoc
+        cls.embed_docs = {
+            False: {
+                False: OptionalEmbeddedOptionalFieldDoc,
+                True: OptionalEmbeddedRequiredFieldDoc,
+            },
+            True: {
+                False: RequiredEmbeddedOptionalFieldDoc,
+                True: RequiredEmbeddedRequiredFieldDoc,
+            }
+        }
 
     @contextmanager
     def noop_context(self):
@@ -41,19 +76,29 @@ class BaseFieldMarshallTest(object):
     def raises_validation_error(self):
         return self.assertRaises(ValidationError)
 
-    def do_test(self, doc_cls, load, expected, validate_context):
+    def _do_test(self, doc_cls, load, expected, validate_context, check):
         doc = doc_cls()
 
         m = Marshaller(doc)
         m.loads(load)
 
-        self.assertEqual(doc.test_field, expected)
+        check(doc)
         with validate_context():
             doc.validate()
 
+    def do_test(self, doc_cls, load, expected, validate_context):
+        def check(doc):
+            self.assertEqual(doc.test_field, expected)
+        return self._do_test(
+            doc_cls,
+            load,
+            expected,
+            validate_context,
+            check)
+
     def test_optional_missing(self):
         self.do_test(
-            self.OptionalDoc,
+            self.OptionalFieldDoc,
             {},
             self.missing_default,
             self.noop_context,
@@ -61,7 +106,7 @@ class BaseFieldMarshallTest(object):
 
     def test_optional_with_none(self):
         self.do_test(
-            self.OptionalDoc,
+            self.OptionalFieldDoc,
             {'test_field': None},
             self.missing_default,
             self.noop_context,
@@ -69,7 +114,7 @@ class BaseFieldMarshallTest(object):
 
     def test_required_missing(self):
         self.do_test(
-            self.RequiredDoc,
+            self.RequiredFieldDoc,
             {},
             self.missing_default,
             self.raises_validation_error,
@@ -77,9 +122,9 @@ class BaseFieldMarshallTest(object):
 
     def test_required_with_none(self):
         self.do_test(
-            self.RequiredDoc,
+            self.RequiredFieldDoc,
             {'test_field': None},
-            None,
+            self.missing_default,
             self.raises_validation_error,
         )
 
@@ -92,25 +137,89 @@ class BaseFieldMarshallTest(object):
         )
 
     def test_optional_valid_values(self):
-        for value in self.valid_values:
-            self._test_with_value(self.OptionalDoc, value, self.noop_context)
+        for value in self.valid_values + self.valid_optional_values:
+            self._test_with_value(self.OptionalFieldDoc, value, self.noop_context)
 
     def test_optional_invalid_values(self):
         for value in self.invalid_values:
             self._test_with_value(
-                self.OptionalDoc,
+                self.OptionalFieldDoc,
                 value,
                 self.raises_validation_error
             )
 
     def test_required_valid_values(self):
-        for value in self.valid_values:
-            self._test_with_value(self.RequiredDoc, value, self.noop_context)
+        for value in self.valid_values + self.valid_required_values:
+            self._test_with_value(
+                self.RequiredFieldDoc,
+                value,
+                self.noop_context)
 
     def test_required_invalid_values(self):
         for value in self.invalid_values:
             self._test_with_value(
-                self.RequiredDoc,
+                self.RequiredFieldDoc,
+                value,
+                self.raises_validation_error
+            )
+
+    def _test_embeded_with_value(self, test_value, validate_context):
+        for required_doc in (False, True):
+            for required_field in (False, True):
+                doc_cls = self.embed_docs[required_doc][required_field]
+                self._do_test(
+                    doc_cls,
+                    {},
+                    None,
+                    self.noop_context if not required_doc else self.raises_validation_error,
+                    lambda d: self.assertIsNone(d.test_doc)
+                )
+
+                if not required_doc:
+                    self._do_test(
+                        doc_cls,
+                        {'test_doc': None},
+                        None,
+                        self.noop_context,
+                        lambda d: self.assertIsNone(d.test_doc)
+                    )
+
+                self._do_test(
+                    doc_cls,
+                    {'test_doc': {'test_field': None}},
+                    None,
+                    self.noop_context if not required_field else self.raises_validation_error,
+                    lambda d: self.assertIsNotNone(d.test_doc) and self.assertNone(d.test_doc.test_field)
+                )
+
+                self._do_test(
+                    doc_cls,
+                    {'test_doc': {'test_field': test_value}},
+                    test_value,
+                    validate_context,
+                    lambda d: self.assertIsNotNone(d.test_doc) and self.assertEqual(d.test_doc.test_field, test_value)
+                )
+
+    def test_optional_embed_valid_values(self):
+        for value in self.valid_values:
+            self._test_embeded_with_value(value, self.noop_context)
+
+    def test_optional_embed_invalid_values(self):
+        for value in self.invalid_values:
+            self._test_embeded_with_value(
+                value,
+                self.raises_validation_error
+            )
+
+    def test_required_embed_valid_values(self):
+        for value in self.valid_values + self.valid_required_values:
+            self._test_embeded_with_value(
+                value,
+                self.noop_context)
+
+    def test_required_embed_invalid_values(self):
+        for value in self.invalid_values:
+            self._test_embeded_with_value(
                 value,
                 self.raises_validation_error
             )
@@ -126,43 +235,10 @@ class DictStringFieldMarshallTest(BaseFieldMarshallTest, unittest2.TestCase):
 
     @staticmethod
     def field_type(**kwargs):
-        return DictField(StringField, StringField, **kwargs)
+        return DictField(StringField, StringField(), **kwargs)
 
-    valid_values = [{}, {'abc': 'def'}]
+    valid_values = [{'abc': 'def'}]
+    valid_optional_values = [{}]
     invalid_values = [{'abc': 2}]
     missing_default = {}
 
-
-class TestMarshaller(unittest2.TestCase):
-
-    class TestDoc(Document):
-        test = StringField()
-
-    @contextmanager
-    def marshaller(self, doc):
-        yield Marshaller(doc)
-
-    def test_empty(self):
-        doc = self.TestDoc()
-
-        with self.marshaller(doc) as m:
-            m.loads({})
-
-        self.assertEqual(doc.test, None)
-
-    def test_string(self):
-        doc = self.TestDoc()
-        test_string = 'yay'
-        with self.marshaller(doc) as m:
-            m.loads({'test': test_string})
-
-        self.assertEqual(doc.test, test_string)
-
-    def test_extra(self):
-        doc = self.TestDoc()
-
-        with self.assertRaises(AttributeError):
-            with self.marshaller(doc) as m:
-                m.loads({'foo': 'bar'})
-
-        self.assertEqual(doc.test, None)
