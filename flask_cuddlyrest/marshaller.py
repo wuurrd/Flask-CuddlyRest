@@ -1,5 +1,5 @@
 from mongoengine.fields import (ReferenceField, EmbeddedDocumentField,
-                                BinaryField)
+                                BinaryField, ListField)
 from mongoengine.errors import ValidationError
 from datetime import datetime
 from bson.objectid import ObjectId
@@ -14,6 +14,7 @@ class Marshaller(object):
         self.doc = doc
         self.document_cls = doc.__class__
         self.related_fields = []
+        self.list_related_fields = []
         self.binary_fields = []
         self.embedded_fields = []
         for k, v in self.document_cls._fields.items():
@@ -23,6 +24,9 @@ class Marshaller(object):
                 self.binary_fields.append(k)
             if isinstance(v, EmbeddedDocumentField):
                 self.embedded_fields.append(k)
+            if isinstance(v, ListField):
+                if isinstance(v.field, ReferenceField):
+                    self.list_related_fields.append(k)
 
     def dumps(self):
         data = self.doc.to_mongo()
@@ -33,6 +37,9 @@ class Marshaller(object):
                 data[field] = None
         data['id'] = data['_id']
         del data['_id']
+        for field in self.list_related_fields:
+            data[field] = [self.__class__(v).dumps() for v in
+                           getattr(self.doc, field)]
         return self.convertor(data)
 
     def convertor(self, value, parent=None, parent_key=None):
