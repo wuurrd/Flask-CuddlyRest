@@ -8,8 +8,7 @@ install: "pip install --use-mirrors --editable .[test]"
 script:
  # Test that everything compiles
  - find . -name '*.py' -exec python -m py_compile {} \;
- # Run unit tests and collect coverage info
- - nose2
+ - nosetests
  # Build the package and check it installs correctly
  - rm -rf dist
  - python setup.py sdist

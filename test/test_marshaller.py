@@ -76,7 +76,7 @@ class BaseFieldMarshallTest(object):
     def raises_validation_error(self):
         return self.assertRaises(ValidationError)
 
-    def _do_test(self, doc_cls, load, expected, validate_context, check):
+    def _verify(self, doc_cls, load, expected, validate_context, check):
         doc = doc_cls()
 
         m = Marshaller(doc)
@@ -86,10 +86,10 @@ class BaseFieldMarshallTest(object):
         with validate_context():
             doc.validate()
 
-    def do_test(self, doc_cls, load, expected, validate_context):
+    def verify(self, doc_cls, load, expected, validate_context):
         def check(doc):
             self.assertEqual(doc.test_field, expected)
-        return self._do_test(
+        return self._verify(
             doc_cls,
             load,
             expected,
@@ -97,7 +97,7 @@ class BaseFieldMarshallTest(object):
             check)
 
     def test_optional_missing(self):
-        self.do_test(
+        self.verify(
             self.OptionalFieldDoc,
             {},
             self.missing_default,
@@ -105,7 +105,7 @@ class BaseFieldMarshallTest(object):
         )
 
     def test_optional_with_none(self):
-        self.do_test(
+        self.verify(
             self.OptionalFieldDoc,
             {'test_field': None},
             self.missing_default,
@@ -113,7 +113,7 @@ class BaseFieldMarshallTest(object):
         )
 
     def test_required_missing(self):
-        self.do_test(
+        self.verify(
             self.RequiredFieldDoc,
             {},
             self.missing_default,
@@ -121,7 +121,7 @@ class BaseFieldMarshallTest(object):
         )
 
     def test_required_with_none(self):
-        self.do_test(
+        self.verify(
             self.RequiredFieldDoc,
             {'test_field': None},
             self.missing_default,
@@ -129,7 +129,7 @@ class BaseFieldMarshallTest(object):
         )
 
     def _test_with_value(self, doc_cls, test_value, validate_context):
-        self.do_test(
+        self.verify(
             doc_cls,
             {'test_field': test_value},
             test_value,
@@ -167,7 +167,7 @@ class BaseFieldMarshallTest(object):
         for required_doc in (False, True):
             for required_field in (False, True):
                 doc_cls = self.embed_docs[required_doc][required_field]
-                self._do_test(
+                self._verify(
                     doc_cls,
                     {},
                     None,
@@ -176,7 +176,7 @@ class BaseFieldMarshallTest(object):
                 )
 
                 if not required_doc:
-                    self._do_test(
+                    self._verify(
                         doc_cls,
                         {'test_doc': None},
                         None,
@@ -184,7 +184,7 @@ class BaseFieldMarshallTest(object):
                         lambda d: self.assertIsNone(d.test_doc)
                     )
 
-                self._do_test(
+                self._verify(
                     doc_cls,
                     {'test_doc': {'test_field': None}},
                     None,
@@ -192,7 +192,7 @@ class BaseFieldMarshallTest(object):
                     lambda d: self.assertIsNotNone(d.test_doc) and self.assertNone(d.test_doc.test_field)
                 )
 
-                self._do_test(
+                self._verify(
                     doc_cls,
                     {'test_doc': {'test_field': test_value}},
                     test_value,
@@ -241,4 +241,3 @@ class DictStringFieldMarshallTest(BaseFieldMarshallTest, unittest2.TestCase):
     valid_optional_values = [{}]
     invalid_values = [{'abc': 2}]
     missing_default = {}
-
