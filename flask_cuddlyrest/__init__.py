@@ -5,8 +5,12 @@ from flask.ext.cuddlyrest.views import ListMongoResource, SingleMongoResource
 
 
 class CuddlyRest(Api):
-    def __init__(self, app):
-        super(CuddlyRest, self).__init__(app=app)
+    
+    def __init__(self, **kwargs):
+        Api.__init__(self, **kwargs)
+        
+    def init_app(self, app):
+        self.app = app
         self.representation('application/json')(self.json_encode)
 
     def json_encode(self, data, code, headers=None):
